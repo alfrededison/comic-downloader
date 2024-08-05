@@ -2,6 +2,7 @@
 const fs = require('fs')
 const axios = require('axios')
 const yargs = require('yargs')
+const { createJobs, createQueue } = require('./libs')
 
 // get comic name, chapter number and saved path from command line
 const argv = yargs
@@ -29,12 +30,22 @@ const argv = yargs
         demandOption: true,
         describe: 'The path to save the image'
     })
+    .option('split', {
+        alias: 'l',
+        type: 'number',
+        demandOption: false,
+        describe: 'The number of chapters to split for each thread'
+    })
+    .option('threads', {
+        alias: 't',
+        type: 'number',
+        demandOption: false,
+        describe: 'The number of threads to use'
+    })
     .argv
 
 
 const download = async (name, chapter, path, skip = 0) => {
-    console.log(`Downloading ${name}...`)
-
     let i = 1 + skip, j = 0
 
     // download images
@@ -61,3 +72,12 @@ const download = async (name, chapter, path, skip = 0) => {
 }
 
 download(argv.name, argv.chapter, argv.path, argv.skip)
+
+const setup = createJobs(argv.skip, argv.chapter, argv.split)
+const job = (skip, chapter) => download(argv.name, chapter, argv.path, skip)
+const jobs = setup(job)
+
+const queue = createQueue(argv.threads)
+const run = jobs.map(q => queue(q))
+
+await Promise.all(run)
