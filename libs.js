@@ -29,7 +29,13 @@ const createQueue = (threads) => {
     return enqueue
 }
 
+const createJobs = (start, end, each) => (fn) => Array.from(
+    { length: Math.ceil((end - start) / each) },
+    (_, i) => () => fn(start + i * each, Math.min(end, start + (i + 1) * each)),
+)
+
 module.exports = {
     sleep,
     createQueue,
+    createJobs,
 }
