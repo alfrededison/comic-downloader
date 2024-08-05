@@ -76,30 +76,3 @@ describe('createJobs', () => {
         expect(jobs[1]()).toEqual([4, 5])
     })
 })
-
-describe('run', () => {
-    it('should run the mocked downloads', async () => {
-        const results = []
-        const download = async (name, chapter, path, skip = 0) => {
-            results.push(`Downloading ${name} ${chapter} ${skip} ${path}...`)
-            await sleep(100)
-        }
-
-        const setup = createJobs(1000, 1100, 20)
-        const job = (skip, chapter) => download("Comic", chapter, "downloads", skip)
-        const jobs = setup(job)
-
-        const queue = createQueue(3)
-        const run = jobs.map(q => queue(q))
-
-        await Promise.all(run)
-
-        expect(results).toEqual([
-            'Downloading Comic 1020 1000 downloads...',
-            'Downloading Comic 1040 1020 downloads...',
-            'Downloading Comic 1060 1040 downloads...',
-            'Downloading Comic 1080 1060 downloads...',
-            'Downloading Comic 1100 1080 downloads...',
-        ])
-    })
-})

@@ -1,8 +1,6 @@
-// create file downloader
-const fs = require('fs')
-const axios = require('axios')
 const yargs = require('yargs')
 const { createJobs, createQueue } = require('./libs')
+const { download, run } = require('./downloader')
 
 // get comic name, chapter number and saved path from command line
 const argv = yargs
@@ -44,40 +42,13 @@ const argv = yargs
     })
     .argv
 
+const tasks = run(createJobs, createQueue)({
+    name: argv.name,
+    start: argv.skip,
+    end: argv.chapter,
+    path: argv.path,
+    split: argv.split,
+    threads: argv.threads
+})(download)
 
-const download = async (name, chapter, path, skip = 0) => {
-    let i = 1 + skip, j = 0
-
-    // download images
-    while (i <= chapter) {
-        console.log(`Downloading ${name} - chap ${i} - img ${j}...`)
-        if (!fs.existsSync(`${path}/${name}/${name}-${i}`)) {
-            fs.mkdirSync(`${path}/${name}/${name}-${i}`, { recursive: true })
-        }
-    
-        const url = `https://cmnvymn.com/nettruyen/${name}/${i}/${j}.jpg`
-        const response = await axios.get(url, { 
-            responseType: 'stream', 
-            validateStatus: status => (status >= 200 && status < 300) || status === 404
-        })
-
-        if (response.status === 404) {
-            i++
-            j = 0
-        } else {
-            response.data.pipe(fs.createWriteStream(`${path}/${name}/${name}-${i}/${String(j).padStart(3, '0')}.jpg`))
-            j++
-        }
-    }
-}
-
-download(argv.name, argv.chapter, argv.path, argv.skip)
-
-const setup = createJobs(argv.skip, argv.chapter, argv.split)
-const job = (skip, chapter) => download(argv.name, chapter, argv.path, skip)
-const jobs = setup(job)
-
-const queue = createQueue(argv.threads)
-const run = jobs.map(q => queue(q))
-
-await Promise.all(run)
+Promise.all(tasks)
