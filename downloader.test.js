@@ -1,10 +1,11 @@
 const fs = require('fs')
-const axios = require('axios')
+jest.mock('fs', () => ({
+    existsSync: jest.fn(),
+    mkdirSync: jest.fn(),
+    createWriteStream: jest.fn(),
+}))
 
-jest.mock('fs')
-jest.mock('axios')
-
-const { run, download } = require("./downloader")
+const { run, pageWritter, wrappedPageWritter, download } = require("./downloader")
 const { createJobs, createQueue, sleep } = require("./libs")
 
 describe('run', () => {
@@ -64,53 +65,103 @@ describe('run', () => {
     })
 })
 
-describe('download', () => {
-    fs.existsSync = jest.fn()
-    fs.mkdirSync = jest.fn()
-    fs.createWriteStream = jest.fn()
-    axios.get = jest.fn()
+describe('pageWritter', () => {
+    beforeEach(() => {
+        jest.clearAllMocks()
+    })
 
-    const SUCCESS_RESPONSE = { status: 200, data: { pipe: () => { } } }
-    const FAILURE_RESPONSE = { status: 404 }
+    it('Correctly constructs file path with leading zeros', () => {
+        const path = 'test/path'
+        const name = 'testName'
+        const chapter = 1
+
+        pageWritter(path, name, chapter, 2)
+        expect(fs.createWriteStream).toHaveBeenCalledWith(`${path}/${name}/${name}-1/002.jpg`)
+
+        pageWritter(path, name, chapter, 20)
+        expect(fs.createWriteStream).toHaveBeenCalledWith(`${path}/${name}/${name}-1/020.jpg`)
+
+        pageWritter(path, name, chapter, 200)
+        expect(fs.createWriteStream).toHaveBeenCalledWith(`${path}/${name}/${name}-1/200.jpg`)
+
+        pageWritter(path, name, chapter, 2000)
+        expect(fs.createWriteStream).toHaveBeenCalledWith(`${path}/${name}/${name}-1/2000.jpg`)
+    })
+})
+
+describe('wrappedPageWritter', () => {
+    const path = 'test/path'
+    const name = 'testName'
+    const chapter = 1
+    const page = 1
 
     beforeEach(() => {
         jest.clearAllMocks()
     })
 
-    it('should create directory structure when directory does not exist', async () => {
-        const name = 'TestComic'
-        const chapter = 1
-        const path = './testFolder'
-
-        fs.existsSync.mockReturnValueOnce(false).mockReturnValue(true)
-        axios.get.mockResolvedValueOnce(SUCCESS_RESPONSE).mockResolvedValue(FAILURE_RESPONSE)
-
-        await download(name, chapter, path)
-
-        expect(fs.mkdirSync).toHaveBeenCalledTimes(1)
-        expect(fs.mkdirSync).toHaveBeenCalledWith(`${path}/${name}/${name}-1`, { recursive: true })
+    it('should call writter parameter with the correct arguments', () => {
+        const writter = jest.fn()
+        wrappedPageWritter(writter)(path, name, chapter, page)
+        expect(writter).toHaveBeenCalledWith(path, name, chapter, page)
     })
 
-    it('should handle a 404 response correctly and stop downloading', async () => {
-        const name = 'TestComic'
-        const chapter = 1
-        const path = './testFolder'
+    it('should create a directory if it does not exist', () => {
+        fs.existsSync.mockReturnValue(false)
+        wrappedPageWritter(() => { })(path, name, chapter, page)
+        expect(fs.existsSync).toHaveBeenCalledWith(`${path}/${name}/${name}-${page}`)
+        expect(fs.mkdirSync).toHaveBeenCalledWith(`${path}/${name}/${name}-${page}`, { recursive: true })
+    })
 
+    it('should not create a directory if it exists', () => {
         fs.existsSync.mockReturnValue(true)
-        axios.get
-            .mockResolvedValueOnce(SUCCESS_RESPONSE)
-            .mockResolvedValueOnce(SUCCESS_RESPONSE)
-            .mockResolvedValueOnce(FAILURE_RESPONSE)
+        wrappedPageWritter(() => { })(path, name, chapter, page)
+        expect(fs.existsSync).toHaveBeenCalledWith(`${path}/${name}/${name}-${page}`)
+        expect(fs.mkdirSync).not.toHaveBeenCalled()
+    })
 
-        await download(name, chapter, path)
+    it('should not check for the directory if it is already checked', () => {
+        fs.existsSync.mockReturnValueOnce(false).mockReturnValueOnce(true)
+        const writter = wrappedPageWritter(() => { })
+        writter(path, name, 1, 1)
+        writter(path, name, 1, 2)
+        writter(path, name, 2, 1)
+        writter(path, name, 2, 2)
 
-        expect(axios.get).toHaveBeenCalledTimes(3)
-        expect(axios.get).toHaveBeenCalledWith(`https://cmnvymn.com/nettruyen/${name}/1/0.jpg`, expect.any(Object))
-        expect(axios.get).toHaveBeenCalledWith(`https://cmnvymn.com/nettruyen/${name}/1/1.jpg`, expect.any(Object))
-        expect(axios.get).toHaveBeenCalledWith(`https://cmnvymn.com/nettruyen/${name}/1/2.jpg`, expect.any(Object))
+        expect(fs.existsSync).toHaveBeenCalledTimes(2)
+        expect(fs.existsSync).toHaveBeenCalledWith(`${path}/${name}/${name}-1`)
+        expect(fs.existsSync).toHaveBeenCalledWith(`${path}/${name}/${name}-2`)
 
-        expect(fs.createWriteStream).toHaveBeenCalledWith(`${path}/${name}/${name}-1/000.jpg`)
-        expect(fs.createWriteStream).toHaveBeenCalledWith(`${path}/${name}/${name}-1/001.jpg`)
-        expect(fs.createWriteStream).not.toHaveBeenCalledWith(`${path}/${name}/${name}-1/002.jpg`)
+        expect(fs.mkdirSync).toHaveBeenCalledWith(`${path}/${name}/${name}-1`, { recursive: true })
+        expect(fs.mkdirSync).not.toHaveBeenCalledWith(`${path}/${name}/${name}-2`, { recursive: true })
+    })
+})
+
+describe('download', () => {
+    beforeEach(() => {
+        jest.clearAllMocks()
+    })
+
+    it('should call the writter function with correct arguments', async () => {
+        const name = 'testName'
+        const chapter = 'testChapter'
+        const path = 'testPath'
+
+        jest.mock('./providers/dummy', () => jest.fn())
+        const mockProvider = require('./providers/dummy')
+
+        const writter = jest.fn()
+        const mockDownloader = jest.fn().mockImplementation(async (callback) => {
+            await callback(name, chapter, 0)
+        })
+
+        mockProvider.mockReturnValue(mockDownloader)
+
+        const downloadFunction = download('dummy')(writter)
+
+        await downloadFunction(name, chapter, path)
+
+        expect(mockProvider).toHaveBeenCalledWith(name, chapter)
+        expect(mockDownloader).toHaveBeenCalled()
+        expect(writter).toHaveBeenCalledWith(path, name, chapter, 0)
     })
 })

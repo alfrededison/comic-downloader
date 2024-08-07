@@ -1,8 +1,13 @@
+const fs = require('fs')
 const yargs = require('yargs')
 const { createJobs, createQueue } = require('./libs')
-const { download, run } = require('./downloader')
+const { download, run, wrappedPageWritter, pageWritter } = require('./downloader')
 
-// get comic name, chapter number and saved path from command line
+// get list of providers
+const providers = fs.readdirSync('./providers')
+    .filter((file) => /([^.test]\.js)$/.test(file))
+    .map((file) => file.slice(0, -3))
+
 const argv = yargs
     .option('name', {
         alias: 'n',
@@ -34,6 +39,12 @@ const argv = yargs
         demandOption: false,
         describe: 'The number of threads to use'
     })
+    .option('provider', {
+        alias: 'd',
+        type: 'string',
+        demandOption: false,
+        describe: 'The provider to use: ' + providers.join(', ')
+    })
     .argv
 
 const tasks = run(createJobs, createQueue)({
@@ -42,6 +53,6 @@ const tasks = run(createJobs, createQueue)({
     end: argv.end,
     path: argv.path,
     threads: argv.threads
-})(download)
+})(download(argv.provider)(wrappedPageWritter(pageWritter)))
 
 Promise.all(tasks)

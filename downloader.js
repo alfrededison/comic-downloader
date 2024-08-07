@@ -1,27 +1,27 @@
 const fs = require('fs')
-const axios = require('axios')
 
-const download = async (name, chapter, path) => {
-    let j = 0
+const pageWritter = (path, name, chapter, page) => fs.createWriteStream(`${path}/${name}/${name}-${chapter}/${String(page).padStart(3, '0')}.jpg`)
 
-    while (true) {
-        console.log(`Downloading ${name} - chap ${chapter} - img ${j}...`)
-        if (!fs.existsSync(`${path}/${name}/${name}-${chapter}`)) {
-            fs.mkdirSync(`${path}/${name}/${name}-${chapter}`, { recursive: true })
+const wrappedPageWritter = (writter) => {
+    const checks = {}
+    return (path, name, chapter, page) => {
+        const key = `${path}/${name}/${name}-${chapter}`
+        if (checks[key] === undefined) {
+            checks[key] = fs.existsSync(key)
+        }
+        if (!checks[key]) {
+            fs.mkdirSync(key, { recursive: true })
         }
 
-        const url = `https://cmnvymn.com/nettruyen/${name}/${chapter}/${j}.jpg`
-        const response = await axios.get(url, {
-            responseType: 'stream',
-            validateStatus: status => (status >= 200 && status < 300) || status === 404
-        })
+        return writter(path, name, chapter, page)
+    }
+}
 
-        if (response.status === 404) {
-            break
-        } else {
-            response.data.pipe(fs.createWriteStream(`${path}/${name}/${name}-${chapter}/${String(j).padStart(3, '0')}.jpg`))
-            j++
-        }
+const download = (provider) => {
+    const downloadProvider = require(`./providers/${provider}`)
+    return (writter) => (name, chapter, path) => {
+        const downloader = downloadProvider(name, chapter)
+        return downloader((name, chapter, page) => writter(path, name, chapter, page))
     }
 }
 
@@ -36,6 +36,8 @@ const run = (jobGenerator, queueProcessor) => ({ name, start, end, path, threads
 }
 
 module.exports = {
+    pageWritter,
+    wrappedPageWritter,
     download,
     run,
 }
