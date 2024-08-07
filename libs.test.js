@@ -57,22 +57,13 @@ describe('createQueue', () => {
 
 describe('createJobs', () => {
     it('should create an array of jobs', () => {
-        const jobs = createJobs(1, 5, 2)((i, j) => [i, j])
-        expect(jobs).toHaveLength(2)
-        expect(jobs[0]).toBeInstanceOf(Function)
-        expect(jobs[1]).toBeInstanceOf(Function)
+        const fn = jest.fn()
+        const jobs = createJobs(1, 5)(fn)
+        expect(jobs).toHaveLength(5)
 
-        expect(jobs[0]()).toEqual([1, 3])
-        expect(jobs[1]()).toEqual([3, 5])
-    })
-    
-    it('should note create more than max number of jobs', () => {
-        const jobs = createJobs(1, 5, 3)((i, j) => [i, j])
-        expect(jobs).toHaveLength(2)
-        expect(jobs[0]).toBeInstanceOf(Function)
-        expect(jobs[1]).toBeInstanceOf(Function)
+        jobs.forEach(job => job())
 
-        expect(jobs[0]()).toEqual([1, 4])
-        expect(jobs[1]()).toEqual([4, 5])
+        expect(fn).toHaveBeenCalledTimes(5)
+        expect(fn.mock.calls).toEqual([[1], [2], [3], [4], [5]])
     })
 })

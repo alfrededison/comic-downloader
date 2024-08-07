@@ -10,29 +10,23 @@ const argv = yargs
         demandOption: true,
         describe: 'The name of the comic'
     })
-    .option('chapter', {
-        alias: 'c',
-        type: 'number',
-        demandOption: true,
-        describe: 'The number of the chapters'
-    })
-    .option('skip', {
+    .option('start', {
         alias: 's',
         type: 'number',
-        demandOption: false,
-        describe: 'The number of chapters to skip'
+        demandOption: true,
+        describe: 'The start number of the chapters'
+    })
+    .option('end', {
+        alias: 'e',
+        type: 'number',
+        demandOption: true,
+        describe: 'The end number of chapters'
     })
     .option('path', {
         alias: 'p',
         type: 'string',
         demandOption: true,
         describe: 'The path to save the image'
-    })
-    .option('split', {
-        alias: 'l',
-        type: 'number',
-        demandOption: false,
-        describe: 'The number of chapters to split for each thread'
     })
     .option('threads', {
         alias: 't',
@@ -44,10 +38,9 @@ const argv = yargs
 
 const tasks = run(createJobs, createQueue)({
     name: argv.name,
-    start: argv.skip,
-    end: argv.chapter,
+    start: argv.start,
+    end: argv.end,
     path: argv.path,
-    split: argv.split,
     threads: argv.threads
 })(download)
 
