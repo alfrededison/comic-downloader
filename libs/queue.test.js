@@ -1,4 +1,5 @@
-const { createQueue, createJobs, sleep } = require('./libs')
+const { sleep } = require('./common')
+const { createQueue, createJobs } = require('./queue')
 
 describe('createQueue', () => {
     const asyncTask = async (results, i, delay) => {

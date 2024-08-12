@@ -17,27 +17,7 @@ const wrappedPageWritter = (writter) => {
     }
 }
 
-const download = (provider) => {
-    const downloadProvider = require(`./providers/${provider}`)
-    return (writter) => (name, chapter, path) => {
-        const downloader = downloadProvider(name, chapter)
-        return downloader((name, chapter, page) => writter(path, name, chapter, page))
-    }
-}
-
-const run = (jobGenerator, queueProcessor) => ({ name, start, end, path, threads }) => fn => {
-    const wrapper = (chapter) => fn(name, chapter, path)
-
-    const setup = jobGenerator(start, end)
-    const jobs = setup(wrapper)
-
-    const queue = queueProcessor(threads)
-    return jobs.map(q => queue(q))
-}
-
 module.exports = {
     pageWritter,
     wrappedPageWritter,
-    download,
-    run,
 }

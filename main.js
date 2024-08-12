@@ -1,7 +1,8 @@
 const fs = require('fs')
 const yargs = require('yargs')
-const { createJobs, createQueue } = require('./libs')
-const { download, run, wrappedPageWritter, pageWritter } = require('./downloader')
+const { createJobs, createQueue } = require('./libs/queue')
+const { wrappedPageWritter, pageWritter } = require('./libs/writters')
+const { download, run } = require('./libs/runner')
 
 // get list of providers
 const providers = fs.readdirSync('./providers')

@@ -1,5 +1,3 @@
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-
 const createQueue = (threads) => {
     let activeThreads = 0
     const queue = []
@@ -35,7 +33,6 @@ const createJobs = (start, end) => (fn) => Array.from(
 )
 
 module.exports = {
-    sleep,
     createQueue,
     createJobs,
 }
