@@ -1,8 +1,9 @@
 const download = (provider) => {
     const downloadProvider = require(`../providers/${provider}`)
     return (writter) => (name, chapter, path) => {
-        const downloader = downloadProvider(name, chapter)
-        return downloader((name, chapter, page) => writter(path, name, chapter, page))
+        const wrappedWritter = (name, chapter, page) => writter(path, name, chapter, page)
+        const downloader = downloadProvider(wrappedWritter)
+        return downloader(name, chapter)
     }
 }
 

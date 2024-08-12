@@ -1,6 +1,6 @@
 const { axiosCatch404Downloader } = require("../libs/downloader")
 
-module.exports = (name, chapter) => async (writter) => {
+module.exports = (writter) => async (name, chapter) => {
     const download = async (name, chapter, page) => {
         console.log(`Downloading ${name} - chap ${chapter} - img ${page}...`)
 

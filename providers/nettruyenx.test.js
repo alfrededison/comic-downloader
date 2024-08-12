@@ -17,7 +17,7 @@ describe('download', () => {
         downloader.axiosCatch404Downloader.mockReturnValue(jest.fn().mockResolvedValueOnce(SUCCESS_RESPONSE).mockResolvedValue(false))
 
         const writter = jest.fn()
-        await download(name, chapter)(writter)
+        await download(writter)(name, chapter)
 
         expect(writter).toHaveBeenCalledTimes(1)
         expect(writter).toHaveBeenCalledWith(name, chapter, 0)
@@ -35,7 +35,7 @@ describe('download', () => {
         downloader.axiosCatch404Downloader.mockReturnValue(downloadFunc)
 
         const writter = jest.fn()
-        await download(name, chapter)(writter)
+        await download(writter)(name, chapter)
 
         expect(downloadFunc).toHaveBeenCalledTimes(3)
         expect(downloadFunc).toHaveBeenCalledWith(`https://cmnvymn.com/nettruyen/${name}/1/0.jpg`)
@@ -56,7 +56,7 @@ describe('download', () => {
 
         const writter = jest.fn()
 
-        await expect(download(name, chapter)(writter)).rejects.toThrowError(error)
+        await expect(download(writter)(name, chapter)).rejects.toThrowError(error)
 
         expect(writter).toHaveBeenCalledTimes(0)
     })

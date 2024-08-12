@@ -73,18 +73,40 @@ describe('download', () => {
         const mockProvider = require('../providers/dummy')
 
         const writter = jest.fn()
-        const mockDownloader = jest.fn().mockImplementation(async (callback) => {
+
+        mockProvider.mockImplementation((callback) => async () => {
             await callback(name, chapter, 0)
         })
-
-        mockProvider.mockReturnValue(mockDownloader)
 
         const downloadFunction = download('dummy')(writter)
 
         await downloadFunction(name, chapter, path)
 
-        expect(mockProvider).toHaveBeenCalledWith(name, chapter)
-        expect(mockDownloader).toHaveBeenCalled()
+        expect(mockProvider).toHaveBeenCalledWith(expect.any(Function))
         expect(writter).toHaveBeenCalledWith(path, name, chapter, 0)
+    })
+    
+    it('should call the writter function with correct arguments', async () => {
+        const name = 'testName'
+        const chapter = 'testChapter'
+        const path = 'testPath'
+
+        jest.mock('../providers/dummy', () => jest.fn())
+        const mockProvider = require('../providers/dummy')
+
+        const writter = jest.fn()
+
+        const downloader = jest.fn().mockImplementation(() => {
+            writter(name, chapter, 0)
+        })
+        mockProvider.mockReturnValue(downloader)
+
+        const downloadFunction = download('dummy')(writter)
+
+        await downloadFunction(name, chapter, path)
+
+        expect(mockProvider).toHaveBeenCalledWith(expect.any(Function))
+        expect(downloader).toHaveBeenCalledWith(name, chapter)
+        expect(writter).toHaveBeenCalledWith(name, chapter, 0)
     })
 })
