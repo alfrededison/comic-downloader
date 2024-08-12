@@ -1,21 +1,20 @@
-const axios = require('axios')
 const download = require('./nettruyenx')
 
-describe('download', () => {
-    axios.get = jest.fn()
+const downloader = require('../libs/downloader')
+jest.mock('../libs/downloader')
 
-    const SUCCESS_RESPONSE = { status: 200, data: { pipe: () => { } } }
-    const FAILURE_RESPONSE = { status: 404 }
+describe('download', () => {
+    const SUCCESS_RESPONSE = { data: { pipe: () => { } } }
 
     beforeEach(() => {
         jest.clearAllMocks()
     })
 
-    it('should create directory structure when directory does not exist', async () => {
+    it('should call writter with correct arguments when having a response', async () => {
         const name = 'TestComic'
         const chapter = 1
 
-        axios.get.mockResolvedValueOnce(SUCCESS_RESPONSE).mockResolvedValue(FAILURE_RESPONSE)
+        downloader.axiosCatch404Downloader.mockReturnValue(jest.fn().mockResolvedValueOnce(SUCCESS_RESPONSE).mockResolvedValue(false))
 
         const writter = jest.fn()
         await download(name, chapter)(writter)
@@ -24,41 +23,41 @@ describe('download', () => {
         expect(writter).toHaveBeenCalledWith(name, chapter, 0)
     })
 
-    it('should handle a 404 response correctly and stop downloading', async () => {
+    it('should handle a break response correctly and stop downloading', async () => {
         const name = 'TestComic'
         const chapter = 1
 
-        axios.get
-        .mockResolvedValueOnce(SUCCESS_RESPONSE)
-        .mockResolvedValueOnce(SUCCESS_RESPONSE)
-        .mockResolvedValueOnce(FAILURE_RESPONSE)
-        
+        const downloadFunc = jest.fn()
+            .mockResolvedValueOnce(SUCCESS_RESPONSE)
+            .mockResolvedValueOnce(SUCCESS_RESPONSE)
+            .mockResolvedValueOnce(false)
+
+        downloader.axiosCatch404Downloader.mockReturnValue(downloadFunc)
+
         const writter = jest.fn()
         await download(name, chapter)(writter)
 
-        expect(axios.get).toHaveBeenCalledTimes(3)
-        expect(axios.get).toHaveBeenCalledWith(`https://cmnvymn.com/nettruyen/${name}/1/0.jpg`, expect.any(Object))
-        expect(axios.get).toHaveBeenCalledWith(`https://cmnvymn.com/nettruyen/${name}/1/1.jpg`, expect.any(Object))
-        expect(axios.get).toHaveBeenCalledWith(`https://cmnvymn.com/nettruyen/${name}/1/2.jpg`, expect.any(Object))
+        expect(downloadFunc).toHaveBeenCalledTimes(3)
+        expect(downloadFunc).toHaveBeenCalledWith(`https://cmnvymn.com/nettruyen/${name}/1/0.jpg`)
+        expect(downloadFunc).toHaveBeenCalledWith(`https://cmnvymn.com/nettruyen/${name}/1/1.jpg`)
+        expect(downloadFunc).toHaveBeenCalledWith(`https://cmnvymn.com/nettruyen/${name}/1/2.jpg`)
 
         expect(writter).toHaveBeenCalledTimes(2)
         expect(writter).toHaveBeenCalledWith(name, chapter, 0)
         expect(writter).toHaveBeenCalledWith(name, chapter, 1)
     })
 
-    it('should handle response status correctly', async () => {
-        axios.get.mockResolvedValueOnce(FAILURE_RESPONSE)
-        await download('TestComic', 1)(jest.fn())
+    it('should throw an error when having an error response', async () => {
+        const name = 'TestComic'
+        const chapter = 1
 
-        expect(axios.get).toHaveBeenCalledTimes(1)
-        const [_, options] = axios.get.mock.calls[0]
+        const error = new Error('Test error')
+        downloader.axiosCatch404Downloader.mockReturnValue(jest.fn().mockRejectedValue(error))
 
-        expect(options.validateStatus).toBeInstanceOf(Function)
-        expect(options.validateStatus(200)).toBe(true)
-        expect(options.validateStatus(302)).toBe(false)
-        expect(options.validateStatus(401)).toBe(false)
-        expect(options.validateStatus(404)).toBe(true)
-        expect(options.validateStatus(403)).toBe(false)
-        expect(options.validateStatus(500)).toBe(false)
+        const writter = jest.fn()
+
+        await expect(download(name, chapter)(writter)).rejects.toThrowError(error)
+
+        expect(writter).toHaveBeenCalledTimes(0)
     })
 })

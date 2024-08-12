@@ -1,16 +1,15 @@
-const axios = require('axios')
+const { axiosCatch404Downloader } = require("../libs/downloader")
 
 module.exports = (name, chapter) => async (writter) => {
     const download = async (name, chapter, page) => {
         console.log(`Downloading ${name} - chap ${chapter} - img ${page}...`)
 
         const url = `https://cmnvymn.com/nettruyen/${name}/${chapter}/${page}.jpg`
-        const response = await axios.get(url, {
-            responseType: 'stream',
-            validateStatus: status => (status >= 200 && status < 300) || status === 404
-        })
+        const downloader = axiosCatch404Downloader({ responseType: 'stream' })
 
-        if (response.status === 404) {
+        const response = await downloader(url)
+
+        if (response === false) {
             return
         }
 
