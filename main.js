@@ -1,7 +1,7 @@
 const fs = require('fs')
 const yargs = require('yargs')
 const { createJobs, createQueue } = require('./libs/queue')
-const { wrappedPageWritter, pageWritter } = require('./libs/writters')
+const { wrappedPageWritter, pageWriteStreamBuilder } = require('./libs/writters')
 const { download, run } = require('./libs/runner')
 
 // get list of providers
@@ -54,6 +54,6 @@ const tasks = run(createJobs, createQueue)({
     end: argv.end,
     path: argv.path,
     threads: argv.threads
-})(download(argv.provider)(wrappedPageWritter(pageWritter)))
+})(download(argv.provider)(wrappedPageWritter(pageWriteStreamBuilder)))
 
 Promise.all(tasks)

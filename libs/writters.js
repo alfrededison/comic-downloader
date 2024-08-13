@@ -1,6 +1,13 @@
 const fs = require('fs')
 
-const pageWritter = (path, name, chapter, page) => fs.createWriteStream(`${path}/${name}/${name}-${chapter}/${String(page).padStart(3, '0')}.jpg`)
+const pageWriteStreamBuilder = (path, name, chapter, page) => 
+    fs.createWriteStream(`${path}/${name}/${name}-${chapter}/${String(page).padStart(3, '0')}.jpg`)
+
+const responsePipe = (stream) => 
+    (response) => response.data.pipe(stream)
+
+const pageWritter = (writeStreamBuilder, responseHandler) =>
+    (name, chapter, page) => responseHandler(writeStreamBuilder(name, chapter, page))
 
 const wrappedPageWritter = (writter) => {
     const checks = {}
@@ -18,6 +25,8 @@ const wrappedPageWritter = (writter) => {
 }
 
 module.exports = {
+    pageWriteStreamBuilder,
+    responsePipe,
     pageWritter,
     wrappedPageWritter,
 }

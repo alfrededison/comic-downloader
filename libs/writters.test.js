@@ -1,9 +1,9 @@
 const fs = require('fs')
 jest.mock('fs')
 
-const { pageWritter, wrappedPageWritter } = require("./writters")
+const { pageWritter, wrappedPageWritter, pageWriteStreamBuilder, responsePipe } = require("./writters")
 
-describe('pageWritter', () => {
+describe('pageWriteStreamBuilder', () => {
     beforeEach(() => {
         jest.clearAllMocks()
     })
@@ -13,17 +13,64 @@ describe('pageWritter', () => {
         const name = 'testName'
         const chapter = 1
 
-        pageWritter(path, name, chapter, 2)
+        pageWriteStreamBuilder(path, name, chapter, 2)
         expect(fs.createWriteStream).toHaveBeenCalledWith(`${path}/${name}/${name}-1/002.jpg`)
 
-        pageWritter(path, name, chapter, 20)
+        pageWriteStreamBuilder(path, name, chapter, 20)
         expect(fs.createWriteStream).toHaveBeenCalledWith(`${path}/${name}/${name}-1/020.jpg`)
 
-        pageWritter(path, name, chapter, 200)
+        pageWriteStreamBuilder(path, name, chapter, 200)
         expect(fs.createWriteStream).toHaveBeenCalledWith(`${path}/${name}/${name}-1/200.jpg`)
 
-        pageWritter(path, name, chapter, 2000)
+        pageWriteStreamBuilder(path, name, chapter, 2000)
         expect(fs.createWriteStream).toHaveBeenCalledWith(`${path}/${name}/${name}-1/2000.jpg`)
+    })
+})
+
+describe('responsePipe', () => {
+    it('returns a function', () => {
+        const stream = {}
+        const result = responsePipe(stream)
+        expect(result).toBeInstanceOf(Function)
+    })
+
+    it('calls pipe on response data with provided stream', () => {
+        const stream = {}
+        const response = { data: { pipe: jest.fn() } }
+        const result = responsePipe(stream)
+        result(response)
+        expect(response.data.pipe).toHaveBeenCalledTimes(1)
+        expect(response.data.pipe).toHaveBeenCalledWith(stream)
+    })
+})
+
+describe('pageWritter', () => {
+    it('returns a function', () => {
+        const writeStreamBuilder = () => { }
+        const responseHandler = () => { }
+        const result = pageWritter(writeStreamBuilder, responseHandler)
+        expect(result).toBeInstanceOf(Function)
+    })
+
+    it('calls responseHandler with the result of writeStreamBuilder', () => {
+        const writeStreamBuilder = () => 'result'
+        const responseHandler = jest.fn()
+        const result = pageWritter(writeStreamBuilder, responseHandler)
+        result()
+        expect(responseHandler).toHaveBeenCalledTimes(1)
+        expect(responseHandler).toHaveBeenCalledWith('result')
+    })
+
+    it('passes the correct arguments to writeStreamBuilder', () => {
+        const name = 'name'
+        const chapter = 'chapter'
+        const page = 'page'
+        const writeStreamBuilder = jest.fn()
+        const responseHandler = () => { }
+        const result = pageWritter(writeStreamBuilder, responseHandler)
+        result(name, chapter, page)
+        expect(writeStreamBuilder).toHaveBeenCalledTimes(1)
+        expect(writeStreamBuilder).toHaveBeenCalledWith(name, chapter, page)
     })
 })
 
