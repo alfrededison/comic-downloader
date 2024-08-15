@@ -1,14 +1,6 @@
-const { scrape } = require('../libs/scraper')
-
-module.exports = ({
-    contentDownloader, chaplistUrlBuilder, chaplistExtractor,
-    imgDownloader, imgExtractor,
-}) =>
-    (writter) => {
+module.exports = (chaplistScraper, imgScraper) =>
+    (downloader, writter) => {
         const cachedChaplists = {}
-
-        const chaplistScraper = scrape(chaplistUrlBuilder, contentDownloader, chaplistExtractor)
-        const chapterGetter = (chaplist) => (chapter) => chaplist[chapter - 1]
 
         return async (name, chapter) => {
             if (cachedChaplists[name] === undefined) {
@@ -18,14 +10,11 @@ module.exports = ({
                 return
             }
 
-            const chapterUrlBuilder = chapterGetter(cachedChaplists[name])
-            const imgScraper = scrape(chapterUrlBuilder, contentDownloader, imgExtractor)
-
-            const imgs = await imgScraper(chapter)
+            const imgs = await imgScraper(cachedChaplists[name], chapter)
 
             const download = async (url, page) => {
                 console.log(`Downloading ${name} - chap ${chapter} - img ${page}...`)
-                const response = await imgDownloader(url)
+                const response = await downloader(url)
                 writter(name, chapter, page)(response)
             }
 

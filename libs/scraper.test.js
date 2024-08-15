@@ -73,6 +73,19 @@ describe('scrape function', () => {
     expect(extractor).toHaveBeenCalledWith('content')
   })
 
+  it('should handle multiple params for urlBuilder', async () => {
+    const urlBuilder = jest.fn((...param) => `https://example.com/${param.join('/')}`)
+    const contentDownloader = jest.fn()
+    const extractor = jest.fn()
+    const name = 'test_name'
+
+    await scrape(urlBuilder, contentDownloader, extractor)(name, 1, 2)
+    expect(urlBuilder).toHaveBeenCalledTimes(1)
+    expect(urlBuilder).toHaveBeenCalledWith(name, 1, 2)
+    expect(contentDownloader).toHaveBeenCalledTimes(1)
+    expect(contentDownloader).toHaveBeenCalledWith('https://example.com/test_name/1/2')
+  })
+
   it('should throw an error when urlBuilder throws an error', async () => {
     const urlBuilder = jest.fn(() => { throw new Error('urlBuilder error') })
     const contentDownloader = jest.fn()

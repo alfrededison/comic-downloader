@@ -28,23 +28,26 @@ describe('download', () => {
         const name = '123/TestComic'
         const chapter = 1
 
-        const downloadFunc = jest.fn()
+        const contentDlFunc = jest.fn()
             .mockResolvedValueOnce(CHAPLIST_RESPONSE)
             .mockResolvedValueOnce(IMGS_RESPONSE)
-            .mockResolvedValue(SUCCESS_RESPONSE)
+        downloader.axiosDownloader.mockReturnValue(contentDlFunc)
 
-        downloader.axiosDownloader.mockReturnValue(downloadFunc)
+        const imgDlFunc = jest.fn().mockResolvedValue(SUCCESS_RESPONSE)
+        downloader.axiosCatch404Downloader.mockReturnValue(imgDlFunc)
 
         const writter = jest.fn()
         await download(writter)(name, chapter)
 
-        expect(downloadFunc).toHaveBeenCalledTimes(6)
-        expect(downloadFunc).toHaveBeenCalledWith(`https://blogtruyenvn.com/123/TestComic`)
-        expect(downloadFunc).toHaveBeenCalledWith(`https://blogtruyenvn.com/c26766/some-chapter-name-1`)
-        expect(downloadFunc).toHaveBeenCalledWith(`https://some.url.info/manga/13/13223/0.jpg`)
-        expect(downloadFunc).toHaveBeenCalledWith(`https://some.url.info/manga/13/13223/1.jpg`)
-        expect(downloadFunc).toHaveBeenCalledWith(`https://some.url.info/25/25630/1-51.jpg`)
-        expect(downloadFunc).toHaveBeenCalledWith(`https://some.url.info/25/25630/1-52.jpg`)
+        expect(contentDlFunc).toHaveBeenCalledTimes(2)
+        expect(contentDlFunc).toHaveBeenCalledWith(`https://blogtruyenvn.com/123/TestComic`)
+        expect(contentDlFunc).toHaveBeenCalledWith(`https://blogtruyenvn.com/c26766/some-chapter-name-1`)
+        
+        expect(imgDlFunc).toHaveBeenCalledTimes(4)
+        expect(imgDlFunc).toHaveBeenCalledWith(`https://some.url.info/manga/13/13223/0.jpg`)
+        expect(imgDlFunc).toHaveBeenCalledWith(`https://some.url.info/manga/13/13223/1.jpg`)
+        expect(imgDlFunc).toHaveBeenCalledWith(`https://some.url.info/25/25630/1-51.jpg`)
+        expect(imgDlFunc).toHaveBeenCalledWith(`https://some.url.info/25/25630/1-52.jpg`)
 
         expect(writter).toHaveBeenCalledTimes(4)
         expect(writter).toHaveBeenCalledWith(name, chapter, 1)

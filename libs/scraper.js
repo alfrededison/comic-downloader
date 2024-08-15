@@ -13,8 +13,8 @@ const getPageContent = (downloader, parser) => async (url) => {
     return parser(response)
 }
 
-const scrape = (urlBuilder, contentDownloader, extractor) => async (param) => {
-    const url = urlBuilder(param)
+const scrape = (urlBuilder, contentDownloader, extractor) => async (...param) => {
+    const url = urlBuilder(...param)
     const content = await contentDownloader(url)
     return extractor(content)
 }

@@ -9,7 +9,7 @@ describe('downloadFunction', () => {
     const writter = jest.fn().mockReturnValue(fn)
     const directLinkBuilder = jest.fn().mockReturnValue('url')
 
-    await downloadFlow(downloader, directLinkBuilder)(writter)('name', 'chapter')
+    await downloadFlow(directLinkBuilder)(downloader, writter)('name', 'chapter')
 
     expect(downloader).toHaveBeenCalledTimes(2)
     expect(writter).toHaveBeenCalledTimes(1)
@@ -24,7 +24,7 @@ describe('downloadFunction', () => {
     const writter = jest.fn().mockReturnValue(fn)
     const directLinkBuilder = jest.fn().mockReturnValue('url')
 
-    await downloadFlow(downloader, directLinkBuilder)(writter)('name', 'chapter')
+    await downloadFlow(directLinkBuilder)(downloader, writter)('name', 'chapter')
 
     expect(downloader).toHaveBeenCalledTimes(1)
     expect(writter).not.toHaveBeenCalled()
@@ -37,7 +37,7 @@ describe('downloadFunction', () => {
     const writter = jest.fn().mockReturnValue(fn)
     const directLinkBuilder = jest.fn().mockReturnValue('url')
 
-    await expect(downloadFlow(downloader, directLinkBuilder)(writter)('name', 'chapter')).rejects.toThrowError('download error')
+    await expect(downloadFlow(directLinkBuilder)(downloader, writter)('name', 'chapter')).rejects.toThrowError('download error')
 
     expect(downloader).toHaveBeenCalledTimes(1)
     expect(writter).not.toHaveBeenCalled()
