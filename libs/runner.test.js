@@ -69,8 +69,8 @@ describe('download', () => {
         const chapter = 'testChapter'
         const path = 'testPath'
 
-        jest.mock('../providers/dummy', () => jest.fn())
-        const mockProvider = require('../providers/dummy')
+        jest.mock('../providers/_dummy', () => jest.fn())
+        const mockProvider = require('../providers/_dummy')
 
         const writter = jest.fn()
 
@@ -78,7 +78,7 @@ describe('download', () => {
             await callback(name, chapter, 0)
         })
 
-        const downloadFunction = download('dummy')(writter)
+        const downloadFunction = download('_dummy')(writter)
 
         await downloadFunction(name, chapter, path)
 
@@ -91,8 +91,8 @@ describe('download', () => {
         const chapter = 'testChapter'
         const path = 'testPath'
 
-        jest.mock('../providers/dummy', () => jest.fn())
-        const mockProvider = require('../providers/dummy')
+        jest.mock('../providers/_dummy', () => jest.fn())
+        const mockProvider = require('../providers/_dummy')
 
         const writter = jest.fn()
 
@@ -101,7 +101,7 @@ describe('download', () => {
         })
         mockProvider.mockReturnValue(downloader)
 
-        const downloadFunction = download('dummy')(writter)
+        const downloadFunction = download('_dummy')(writter)
 
         await downloadFunction(name, chapter, path)
 
