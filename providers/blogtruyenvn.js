@@ -15,7 +15,7 @@ const chaplistExtractor = (root) => root.querySelectorAll("#list-chapters a").re
 const chaplistScraper = scrape(chaplistUrlBuilder, contentDownloader, chaplistExtractor)
 
 const chapterUrlBuilder = (chaplist, chapter) => chaplist[chapter - 1]
-const imgExtractor = (root) => root.querySelectorAll("#content img").map((node) => node.getAttribute("src"))
+const imgExtractor = (root) => root.querySelectorAll("#content img").map((node) => node.getAttribute("src")).slice(1, -1)
 const imgScraper = scrape(chapterUrlBuilder, contentDownloader, imgExtractor)
 
 module.exports = (streamWritter) => list(chaplistScraper, imgScraper)(

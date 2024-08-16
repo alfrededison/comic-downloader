@@ -14,10 +14,8 @@ describe('download', () => {
     }
     const IMGS_RESPONSE = {
         data: `<article id="content">
-                <img src="https://some.url.info/manga/13/13223/0.jpg"> <img src="https://some.url.info/manga/13/13223/1.jpg"><div class="qc_TC_Chap_Middle" data-positionchapter="1">
-                </div><img src="https://some.url.info/25/25630/1-51.jpg"><img src="https://some.url.info/25/25630/1-52.jpg">
-                </article>
-                `
+                <img src="https://i7.bumcheo.info/manga/13/13223/0.jpg"><img src="https://i10-1.bumcheo4.info/1091/1091883/0.jpg?v=1718957715"><img src="https://i10-1.bumcheo4.info/1091/1091883/1.jpg?v=1718957715"><div class="qc_TC_Chap_Middle" data-positionchapter="1">
+                </div><img src="https://i10-1.bumcheo4.info/1091/1091883/11.jpg?v=1718957716"><img src="https://i10-1.bumcheo4.info/1091/1091883/12.jpg?v=1718957716"><img src="https://i7.bumcheo.info/manga/13/13223/1.png">        </article>`
     }
 
     beforeEach(() => {
@@ -44,10 +42,12 @@ describe('download', () => {
         expect(contentDlFunc).toHaveBeenCalledWith(`https://blogtruyenvn.com/c26766/some-chapter-name-1`)
         
         expect(imgDlFunc).toHaveBeenCalledTimes(4)
-        expect(imgDlFunc).toHaveBeenCalledWith(`https://some.url.info/manga/13/13223/0.jpg`)
-        expect(imgDlFunc).toHaveBeenCalledWith(`https://some.url.info/manga/13/13223/1.jpg`)
-        expect(imgDlFunc).toHaveBeenCalledWith(`https://some.url.info/25/25630/1-51.jpg`)
-        expect(imgDlFunc).toHaveBeenCalledWith(`https://some.url.info/25/25630/1-52.jpg`)
+        expect(imgDlFunc).not.toHaveBeenCalledWith(`https://i7.bumcheo.info/manga/13/13223/0.jpg`)
+        expect(imgDlFunc).not.toHaveBeenCalledWith(`https://i7.bumcheo.info/manga/13/13223/1.png`)
+        expect(imgDlFunc).toHaveBeenCalledWith(`https://i10-1.bumcheo4.info/1091/1091883/0.jpg?v=1718957715`)
+        expect(imgDlFunc).toHaveBeenCalledWith(`https://i10-1.bumcheo4.info/1091/1091883/1.jpg?v=1718957715`)
+        expect(imgDlFunc).toHaveBeenCalledWith(`https://i10-1.bumcheo4.info/1091/1091883/11.jpg?v=1718957716`)
+        expect(imgDlFunc).toHaveBeenCalledWith(`https://i10-1.bumcheo4.info/1091/1091883/12.jpg?v=1718957716`)
 
         expect(writter).toHaveBeenCalledTimes(4)
         expect(writter).toHaveBeenCalledWith(name, chapter, 1)
