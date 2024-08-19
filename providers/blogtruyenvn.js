@@ -11,7 +11,7 @@ const contentDownloader = getPageContent(downloader, parsePageContent)
 
 const DOMAIN = "https://blogtruyenvn.com"
 const chaplistUrlBuilder = (name) => `${DOMAIN}/${name}`
-const chaplistExtractor = (root) => root.querySelectorAll("#list-chapters a").reverse().map((node) => DOMAIN + node.getAttribute("href"))
+const chaplistExtractor = (root) => root.querySelectorAll("#list-chapters .title a").reverse().map((node) => DOMAIN + node.getAttribute("href"))
 const chaplistScraper = scrape(chaplistUrlBuilder, contentDownloader, chaplistExtractor)
 
 const chapterUrlBuilder = (chaplist, chapter) => chaplist[chapter - 1]

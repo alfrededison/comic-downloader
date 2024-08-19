@@ -10,6 +10,7 @@ describe('download', () => {
                 <p id="chapter-26766">
                     <span class="title"> <a id="c_26766" href="/c26766/some-chapter-name-1" title="Some Chapter name 1">Some Chapter name 1</a> </span>
                     <span class="publishedDate"> 17/04/2012 </span>
+                    <span class="download"> <a href="http://some.host.com/?6b6hpp85x8vzcyr" rel="nofollow" title="Download">Download</a> </span>
                 </p> </div>`
     }
     const IMGS_RESPONSE = {
