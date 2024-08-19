@@ -2,8 +2,11 @@ const { sleep } = require('./common')
 const { createQueue, createJobs } = require('./queue')
 
 describe('createQueue', () => {
-    const asyncTask = async (results, i, delay) => {
+    const asyncTask = async (results, i, delay, shouldFail = false) => {
         await sleep(delay)
+        if (shouldFail) {
+            throw new Error(`Task ${i} failed`)
+        }
         results.push(i)
     }
 
@@ -53,6 +56,35 @@ describe('createQueue', () => {
         await Promise.all(tasks)
 
         expect(results).toEqual([1, 2])
+    })
+
+    it('should stop processing if a job fails by default', async () => {
+        const queue = createQueue(3)
+        const results = []
+
+        const tasks = [
+            queue(() => asyncTask(results, 1, 100)),
+            queue(() => asyncTask(results, 0, 50, true)),
+            queue(() => asyncTask(results, 2, 200)),
+            queue(() => asyncTask(results, 3, 300)),
+        ]
+
+        await expect(Promise.all(tasks)).rejects.toThrowError('Task 0 failed')
+    })
+
+    it('should be able to continue processing if a job fails', async () => {
+        const queue = createQueue(3, { continueOnError: true })
+        const results = []
+
+        const tasks = [
+            queue(() => asyncTask(results, 1, 100)),
+            queue(() => asyncTask(results, 0, 50, true)),
+            queue(() => asyncTask(results, 2, 200)),
+            queue(() => asyncTask(results, 3, 300)),
+        ]
+
+        await Promise.all(tasks)
+        expect(results).toEqual([1, 2, 3])
     })
 })
 

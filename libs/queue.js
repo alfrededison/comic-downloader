@@ -1,4 +1,4 @@
-const createQueue = (threads) => {
+const createQueue = (threads, { continueOnError = false } = {}) => {
     let activeThreads = 0
     const queue = []
 
@@ -8,18 +8,27 @@ const createQueue = (threads) => {
         }
 
         activeThreads++
-        const { task, resolve } = queue.shift()
-        await task()
-        resolve()
-        activeThreads--
+        const { task, resolve, reject } = queue.shift()
 
-        // Process the next task in the queue
-        dequeue()
+        try {
+            await task()
+            resolve()
+        } catch (error) {
+            if (continueOnError) {
+                resolve() // Continue to the next job
+            } else {
+                reject(error) // Fail the enqueue promise
+            }
+        } finally {
+            activeThreads--
+            // Process the next task in the queue
+            dequeue()
+        }
     }
 
     const enqueue = (task) => {
-        return new Promise((resolve) => {
-            queue.push({ task, resolve })
+        return new Promise((resolve, reject) => {
+            queue.push({ task, resolve, reject })
             dequeue()
         })
     }
@@ -28,7 +37,7 @@ const createQueue = (threads) => {
 }
 
 const createJobs = (start, end) => (fn) => Array.from(
-    { length: end - start + 1},
+    { length: end - start + 1 },
     (_, i) => () => fn(start + i),
 )
 
