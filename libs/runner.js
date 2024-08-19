@@ -2,10 +2,11 @@ const download = (provider) => {
     const downloadProvider = require(`../providers/${provider}`)
     const writeToPath = (path, writter) => (name, chapter, page) => writter(path, name, chapter, page)
     
-    return (writter) => (name, chapter, path) => {
+    return (writter) => async (name, chapter, path) => {
         const wrappedWritter = writeToPath(path, writter)
         const downloader = downloadProvider(wrappedWritter)
-        return downloader(name, chapter)
+        await downloader(name, chapter)
+        console.log(`Downloaded ${name} - chap ${chapter}`)
     }
 }
 
