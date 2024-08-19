@@ -16,7 +16,7 @@ describe('download', () => {
     const IMGS_RESPONSE = {
         data: `<article id="content">
                 <img src="https://i7.bumcheo.info/manga/13/13223/0.jpg"><img src="https://i10-1.bumcheo4.info/1091/1091883/0.jpg?v=1718957715"><img src="https://i10-1.bumcheo4.info/1091/1091883/1.jpg?v=1718957715"><div class="qc_TC_Chap_Middle" data-positionchapter="1">
-                </div><img src="https://i10-1.bumcheo4.info/1091/1091883/11.jpg?v=1718957716"><img src="https://i10-1.bumcheo4.info/1091/1091883/12.jpg?v=1718957716"><img src="https://i7.bumcheo.info/manga/13/13223/1.png">        </article>`
+                </div><img src="https://i10-1.bumcheo4.info/1091/1091883/11.jpg "><img src="https://i10-1.bumcheo4.info/1091/1091883/12.jpg "><img src="https://i7.bumcheo.info/manga/13/13223/1.png">        </article>`
     }
 
     beforeEach(() => {
@@ -47,8 +47,8 @@ describe('download', () => {
         expect(imgDlFunc).not.toHaveBeenCalledWith(`https://i7.bumcheo.info/manga/13/13223/1.png`)
         expect(imgDlFunc).toHaveBeenCalledWith(`https://i10-1.bumcheo4.info/1091/1091883/0.jpg?v=1718957715`)
         expect(imgDlFunc).toHaveBeenCalledWith(`https://i10-1.bumcheo4.info/1091/1091883/1.jpg?v=1718957715`)
-        expect(imgDlFunc).toHaveBeenCalledWith(`https://i10-1.bumcheo4.info/1091/1091883/11.jpg?v=1718957716`)
-        expect(imgDlFunc).toHaveBeenCalledWith(`https://i10-1.bumcheo4.info/1091/1091883/12.jpg?v=1718957716`)
+        expect(imgDlFunc).toHaveBeenCalledWith(`https://i10-1.bumcheo4.info/1091/1091883/11.jpg`)
+        expect(imgDlFunc).toHaveBeenCalledWith(`https://i10-1.bumcheo4.info/1091/1091883/12.jpg`)
 
         expect(writter).toHaveBeenCalledTimes(4)
         expect(writter).toHaveBeenCalledWith(name, chapter, 1)
