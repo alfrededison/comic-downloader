@@ -18,6 +18,12 @@ module.exports = (chaplistScraper, imgScraper) =>
             const download = async (url, page) => {
                 console.log(`Downloading ${name} - chap ${chapter}/${totalChapters} - img ${page}/${imgs.length}...`)
                 const response = await downloader(url)
+
+                if (response === false) {
+                    console.log(`Image ${url} not found`)
+                    return
+                }
+
                 writter(name, chapter, page)(response)
             }
 

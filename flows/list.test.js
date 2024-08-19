@@ -59,4 +59,17 @@ describe('downloadFunction', () => {
         expect(writter).toHaveBeenCalledWith('name', 1, 1)
         expect(writeFn).toHaveBeenCalledWith('image-data')
     })
+
+    it('should continue on image error', async () => {
+        const _imgScraper = jest.fn().mockReturnValue(['image-url-1', 'image-url-2'])
+        const _imgDownloader = jest.fn().mockResolvedValueOnce(false).mockResolvedValue('image-data')
+        const downloader = downloadFunction(chaplistScraper, _imgScraper)(_imgDownloader, writter)
+        await downloader('name', 1)
+        expect(_imgDownloader).toHaveBeenCalledTimes(2)
+        expect(_imgDownloader).toHaveBeenCalledWith('image-url-1')
+        expect(_imgDownloader).toHaveBeenCalledWith('image-url-2')
+        expect(writter).toHaveBeenCalledTimes(1)
+        expect(writter).toHaveBeenCalledWith('name', 1, 2)
+        expect(writeFn).toHaveBeenCalledWith('image-data')
+    })
 })
