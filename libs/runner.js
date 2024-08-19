@@ -1,12 +1,16 @@
 const download = (provider) => {
     const downloadProvider = require(`../providers/${provider}`)
     const writeToPath = (path, writter) => (name, chapter, page) => writter(path, name, chapter, page)
-    
-    return (writter) => async (name, chapter, path) => {
+
+    return (writter, logger) => async (name, chapter, path) => {
         const wrappedWritter = writeToPath(path, writter)
         const downloader = downloadProvider(wrappedWritter)
-        await downloader(name, chapter)
-        console.log(`Downloaded ${name} - chap ${chapter}`)
+        try {
+            await downloader(name, chapter)
+            logger.info(`[${provider}] Downloaded ${name} - chap ${chapter}`)
+        } catch (error) {
+            logger.error(`[${provider}] Error downloading ${name} - chap ${chapter}: ${error}`)
+        }
     }
 }
 

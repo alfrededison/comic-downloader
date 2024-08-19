@@ -60,6 +60,11 @@ describe('run', () => {
 })
 
 describe('download', () => {
+    const logger = {
+        info: jest.fn(),
+        error: jest.fn(),
+    }
+    
     beforeEach(() => {
         jest.clearAllMocks()
     })
@@ -78,7 +83,7 @@ describe('download', () => {
             await callback(name, chapter, 0)
         })
 
-        const downloadFunction = download('_dummy')(writter)
+        const downloadFunction = download('_dummy')(writter, logger)
 
         await downloadFunction(name, chapter, path)
 
@@ -101,12 +106,44 @@ describe('download', () => {
         })
         mockProvider.mockReturnValue(downloader)
 
-        const downloadFunction = download('_dummy')(writter)
+        const downloadFunction = download('_dummy')(writter, logger)
 
         await downloadFunction(name, chapter, path)
 
         expect(mockProvider).toHaveBeenCalledWith(expect.any(Function))
         expect(downloader).toHaveBeenCalledWith(name, chapter)
         expect(writter).toHaveBeenCalledWith(name, chapter, 0)
+    })
+
+    it('should call the logger info function with correct arguments on success', async () => {
+        const name = 'testName'
+        const chapter = 'testChapter'
+        const path = 'testPath'
+
+        jest.mock('../providers/_dummy', () => jest.fn())
+        const mockProvider = require('../providers/_dummy')
+        mockProvider.mockReturnValue(jest.fn())
+
+        const downloadFunction = download('_dummy')(() => {}, logger)
+        await downloadFunction(name, chapter, path)
+
+        expect(logger.info).toHaveBeenCalledWith(`[_dummy] Downloaded ${name} - chap ${chapter}`)
+        expect(logger.error).not.toHaveBeenCalled()
+    })
+
+    it('should call the logger error function with correct arguments on failure', async () => {
+        const name = 'testName'
+        const chapter = 'testChapter'
+        const path = 'testPath'
+
+        jest.mock('../providers/_dummy', () => jest.fn())
+        const mockProvider = require('../providers/_dummy')
+        mockProvider.mockReturnValue(jest.fn().mockRejectedValue(new Error('download error')))
+
+        const downloadFunction = download('_dummy')(() => {}, logger)
+        await downloadFunction(name, chapter, path)
+
+        expect(logger.info).not.toHaveBeenCalled()
+        expect(logger.error).toHaveBeenCalledWith(`[_dummy] Error downloading ${name} - chap ${chapter}: Error: download error`)
     })
 })

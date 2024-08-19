@@ -54,6 +54,6 @@ const tasks = run(createJobs, createQueue)({
     end: argv.end,
     path: argv.path,
     threads: argv.threads
-})(download(argv.provider)(wrappedPageWritter(pageWriteStreamBuilder)))
+})(download(argv.provider)(wrappedPageWritter(pageWriteStreamBuilder), console))
 
 Promise.all(tasks)
