@@ -38,9 +38,9 @@ describe('download', () => {
         await download(writter)(name, chapter)
 
         expect(downloadFunc).toHaveBeenCalledTimes(3)
-        expect(downloadFunc).toHaveBeenCalledWith(`https://cmnvymn.com/nettruyen/${name}/1/0.jpg`)
-        expect(downloadFunc).toHaveBeenCalledWith(`https://cmnvymn.com/nettruyen/${name}/1/1.jpg`)
-        expect(downloadFunc).toHaveBeenCalledWith(`https://cmnvymn.com/nettruyen/${name}/1/2.jpg`)
+        expect(downloadFunc).toHaveBeenCalledWith(`https://ddntcthcd.com/nettruyen/${name}/1/0.jpg`)
+        expect(downloadFunc).toHaveBeenCalledWith(`https://ddntcthcd.com/nettruyen/${name}/1/1.jpg`)
+        expect(downloadFunc).toHaveBeenCalledWith(`https://ddntcthcd.com/nettruyen/${name}/1/2.jpg`)
 
         expect(writter).toHaveBeenCalledTimes(2)
         expect(writter).toHaveBeenCalledWith(name, chapter, 0)
